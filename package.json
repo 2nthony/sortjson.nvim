@@ -26,9 +26,9 @@
     "lint-fix": "eslint . --fix"
   },
   "devDependencies": {
-    "@2nthony/eslint-config": "*",
+    "@2nthony/eslint-config": "^1.0.3",
     "cac": "^6.7.14",
-    "eslint": "^8.35.0",
+    "eslint": "^8.43.0",
     "load-json-file": "^7.0.1",
     "tsup": "7.1.0",
     "typescript": "5.1.6",
