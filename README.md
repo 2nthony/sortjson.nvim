@@ -12,7 +12,6 @@ NeoVIM plugin port of [vscode-sort-json](https://github.com/richie5um/vscode-sor
 -- lazy.nvim
 return {
   "2nthony/sortjson.nvim",
-  event = "VeryLazy",
   cmd = {
     "SortJSONByAlphaNum",
     "SortJSONByAlphaNumReverse",
