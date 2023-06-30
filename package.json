@@ -20,18 +20,18 @@
     "dist"
   ],
   "scripts": {
-    "build-fast": "tsup src/index.ts --format cjs,esm",
-    "build": "pnpm run build-fast --dts-resolve",
-    "test": "vitest run",
+    "build": "tsup",
     "prepublishOnly": "pnpm run build",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix"
   },
   "devDependencies": {
     "@2nthony/eslint-config": "*",
+    "cac": "^6.7.14",
     "eslint": "^8.35.0",
+    "load-json-file": "^7.0.1",
     "tsup": "7.1.0",
     "typescript": "5.1.6",
-    "vitest": "0.32.2"
+    "write-json-file": "^5.0.0"
   }
 }
