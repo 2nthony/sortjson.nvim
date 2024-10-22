@@ -12,9 +12,17 @@ function M.sort_json(sort_option, reverse)
 
   local output = vim.fn.system(jq_command, json_text)
 
+
   if vim.v.shell_error ~= 0 then
-    local error_msg = string.format("Error: Failed to sort JSON. Command: %s\nOutput: %s", jq_command, output)
-    vim.api.nvim_err_writeln(error_msg)
+    local error_msg = string.format("[sortjson.nvim] Failed to sort JSON. Error: %s", vim.trim(output))
+    vim.notify(error_msg, vim.log.levels.WARN)
+    return
+  end
+
+  -- Check if the output is valid JSON
+  local success, _ = pcall(vim.fn.json_decode, output)
+  if not success then
+    vim.notify("[sortjson.nvim] Failed to sort JSON: Invalid JSON output", vim.log.levels.WARN)
     return
   end
 
