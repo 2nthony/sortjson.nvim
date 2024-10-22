@@ -1,5 +1,5 @@
 local defaults = {
-  jq = 'jq'
+  jq = "jq",
 }
 
 local M = {}
@@ -10,12 +10,13 @@ function M.sort_json(opts, sort_option, reverse)
   local json_text = table.concat(lines, "\n")
 
   local jq_command = string.format(
-    "%s 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) elif type == \"array\" then map(sort_recursive) else . end; sort_recursive'",
-    opts.jq, sort_option, reverse and "reverse" or "."
+    '%s \'def sort_recursive: if type == "object" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) elif type == "array" then map(sort_recursive) else . end; sort_recursive\'',
+    opts.jq,
+    sort_option,
+    reverse and "reverse" or "."
   )
 
   local output = vim.fn.system(jq_command, json_text)
-
 
   if vim.v.shell_error ~= 0 then
     local error_msg = string.format("[sortjson.nvim] Failed to sort JSON. Error: %s", vim.trim(output))
@@ -36,7 +37,6 @@ end
 function M.setup(user_opts)
   user_opts = user_opts or {}
   opts = vim.tbl_extend("force", defaults, user_opts)
-
 
   vim.api.nvim_create_user_command("SortJSONByAlphaNum", function()
     M.sort_json(opts, ".key", false)
