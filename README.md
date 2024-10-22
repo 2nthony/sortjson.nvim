@@ -6,7 +6,7 @@ https://github.com/2nthony/sortjson.nvim/assets/19513289/5d425e1b-28c5-4c3b-8d42
 
 ## Requirements
 
-- [Node.JS](https://nodejs.org/en/) LTS, native welcome.
+- [jq](https://jqlang.github.io/jq/) use `jq` as the processor by default.
 
 ## Usage
 
@@ -20,7 +20,10 @@ return {
     "SortJSONByKeyLength",
     "SortJSONByKeyLengthReverse",
   },
-  config = true,
+  -- options with default values
+  opts = {
+    jq = "jq", -- jq command, you can try `jaq` `gojq` etc.
+  },
 }
 ```
 

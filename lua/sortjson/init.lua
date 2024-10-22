@@ -1,31 +1,58 @@
+local defaults = {
+  jq = "jq",
+}
+
 local M = {}
 
-local function get_plugin_dir()
-  local str = debug.getinfo(2, "S").source:sub(2)
-  return vim.fn.fnamemodify(str, ":h")
+function M.sort_json(opts, sort_option, reverse)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local json_text = table.concat(lines, "\n")
+
+  local jq_command = string.format(
+    '%s \'def sort_recursive: if type == "object" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) elif type == "array" then map(sort_recursive) else . end; sort_recursive\'',
+    opts.jq,
+    sort_option,
+    reverse and "reverse" or "."
+  )
+
+  local output = vim.fn.system(jq_command, json_text)
+
+  if vim.v.shell_error ~= 0 then
+    local error_msg = string.format("[sortjson.nvim] Failed to sort JSON. Error: %s", vim.trim(output))
+    vim.notify(error_msg, vim.log.levels.WARN)
+    return
+  end
+
+  -- Check if the output is valid JSON
+  local success, _ = pcall(vim.fn.json_decode, output)
+  if not success then
+    vim.notify("[sortjson.nvim] Failed to sort JSON: Invalid JSON output", vim.log.levels.WARN)
+    return
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
 end
 
--- nodejs
-local __dirname = get_plugin_dir()
+function M.setup(user_opts)
+  user_opts = user_opts or {}
+  opts = vim.tbl_extend("force", defaults, user_opts)
 
-local build_ipc_command = function(nvim_command, ipc_option)
-  vim.api.nvim_create_user_command(nvim_command, function()
-    local current_file_path = vim.api.nvim_buf_get_name(0)
-    local output = vim.fn.system({ "node", __dirname .. "/cli.js", current_file_path, ipc_option })
-    if output then
-      print(output)
-    end
-
-    -- reload current file
-    vim.cmd([[:e]])
+  vim.api.nvim_create_user_command("SortJSONByAlphaNum", function()
+    M.sort_json(opts, ".key", false)
   end, {})
-end
 
-M.setup = function()
-  build_ipc_command("SortJSONByAlphaNum", "--alpha-num")
-  build_ipc_command("SortJSONByAlphaNumReverse", "--alpha-num-reverse")
-  build_ipc_command("SortJSONByKeyLength", "--key-length")
-  build_ipc_command("SortJSONByKeyLengthReverse", "--key-length-reverse")
+  vim.api.nvim_create_user_command("SortJSONByAlphaNumReverse", function()
+    M.sort_json(opts, ".key", true)
+  end, {})
+
+  vim.api.nvim_create_user_command("SortJSONByKeyLength", function()
+    M.sort_json(opts, ".key | length", false)
+  end, {})
+
+  vim.api.nvim_create_user_command("SortJSONByKeyLengthReverse", function()
+    M.sort_json(opts, ".key | length", true)
+  end, {})
 end
 
 return M
