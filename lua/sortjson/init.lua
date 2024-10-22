@@ -1,31 +1,40 @@
 local M = {}
 
-local function get_plugin_dir()
-  local str = debug.getinfo(2, "S").source:sub(2)
-  return vim.fn.fnamemodify(str, ":h")
+function M.sort_json(sort_option, reverse)
+  local current_file_path = vim.api.nvim_buf_get_name(0)
+  local jq_command = string.format(
+  "jq 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) else . end; sort_recursive'",
+    sort_option, reverse and "reverse" or ".")
+
+  local command = string.format("cat '%s' | %s", current_file_path, jq_command)
+  local output = vim.fn.system(command)
+
+  if vim.v.shell_error ~= 0 then
+    local error_msg = string.format("Error: Failed to sort JSON. Command: %s\nOutput: %s", command, output)
+    vim.api.nvim_err_writeln(error_msg)
+    return
+  end
+
+  vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(output, "\n"))
+  vim.cmd("write")
 end
 
--- nodejs
-local __dirname = get_plugin_dir()
-
-local build_ipc_command = function(nvim_command, ipc_option)
-  vim.api.nvim_create_user_command(nvim_command, function()
-    local current_file_path = vim.api.nvim_buf_get_name(0)
-    local output = vim.fn.system({ "node", __dirname .. "/cli.js", current_file_path, ipc_option })
-    if output then
-      print(output)
-    end
-
-    -- reload current file
-    vim.cmd([[:e]])
+function M.setup()
+  vim.api.nvim_create_user_command("SortJSONByAlphaNum", function()
+    M.sort_json(".key", false)
   end, {})
-end
 
-M.setup = function()
-  build_ipc_command("SortJSONByAlphaNum", "--alpha-num")
-  build_ipc_command("SortJSONByAlphaNumReverse", "--alpha-num-reverse")
-  build_ipc_command("SortJSONByKeyLength", "--key-length")
-  build_ipc_command("SortJSONByKeyLengthReverse", "--key-length-reverse")
+  vim.api.nvim_create_user_command("SortJSONByAlphaNumReverse", function()
+    M.sort_json(".key", true)
+  end, {})
+
+  vim.api.nvim_create_user_command("SortJSONByKeyLength", function()
+    M.sort_json(".key | length", false)
+  end, {})
+
+  vim.api.nvim_create_user_command("SortJSONByKeyLengthReverse", function()
+    M.sort_json(".key | length", true)
+  end, {})
 end
 
 return M
