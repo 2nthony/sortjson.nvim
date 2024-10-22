@@ -1,22 +1,24 @@
 local M = {}
 
 function M.sort_json(sort_option, reverse)
-  local current_file_path = vim.api.nvim_buf_get_name(0)
-  local jq_command = string.format(
-  "jq 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) else . end; sort_recursive'",
-    sort_option, reverse and "reverse" or ".")
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local json_text = table.concat(lines, "\n")
 
-  local command = string.format("cat '%s' | %s", current_file_path, jq_command)
-  local output = vim.fn.system(command)
+  local jq_command = string.format(
+    "jq 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) else . end; sort_recursive'",
+    sort_option, reverse and "reverse" or "."
+  )
+
+  local output = vim.fn.system(jq_command, json_text)
 
   if vim.v.shell_error ~= 0 then
-    local error_msg = string.format("Error: Failed to sort JSON. Command: %s\nOutput: %s", command, output)
+    local error_msg = string.format("Error: Failed to sort JSON. Command: %s\nOutput: %s", jq_command, output)
     vim.api.nvim_err_writeln(error_msg)
     return
   end
 
-  vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(output, "\n"))
-  vim.cmd("write")
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
 end
 
 function M.setup()
