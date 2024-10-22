@@ -6,7 +6,7 @@ function M.sort_json(sort_option, reverse)
   local json_text = table.concat(lines, "\n")
 
   local jq_command = string.format(
-    "jq 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) else . end; sort_recursive'",
+    "jq 'def sort_recursive: if type == \"object\" then to_entries | sort_by(%s) | %s | from_entries | map_values(sort_recursive) elif type == \"array\" then map(sort_recursive) else . end; sort_recursive'",
     sort_option, reverse and "reverse" or "."
   )
 
