@@ -26,7 +26,7 @@ function M.sort_json(opts, sort_option, reverse)
   end
 
   -- Check if the output is valid JSON
-  local success, _ = pcall(vim.fn.json_decode, output)
+  local success, _ = pcall(vim.json and vim.json.decode or vim.fn.json_decode, output)
   if not success then
     vim.notify("[sortjson.nvim] Failed to sort JSON: Invalid JSON output", vim.log.levels[opts.log_level])
     return
