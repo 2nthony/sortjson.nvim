@@ -1,5 +1,6 @@
 local defaults = {
   jq = "jq",
+  log_level = "WARN",
 }
 
 local M = {}
@@ -20,14 +21,14 @@ function M.sort_json(opts, sort_option, reverse)
 
   if vim.v.shell_error ~= 0 then
     local error_msg = string.format("[sortjson.nvim] Failed to sort JSON. Error: %s", vim.trim(output))
-    vim.notify(error_msg, vim.log.levels.WARN)
+    vim.notify(error_msg, vim.log.levels[opts.log_level])
     return
   end
 
   -- Check if the output is valid JSON
   local success, _ = pcall(vim.fn.json_decode, output)
   if not success then
-    vim.notify("[sortjson.nvim] Failed to sort JSON: Invalid JSON output", vim.log.levels.WARN)
+    vim.notify("[sortjson.nvim] Failed to sort JSON: Invalid JSON output", vim.log.levels[opts.log_level])
     return
   end
 
