@@ -4,10 +4,6 @@ NeoVIM plugin port of [vscode-sort-json](https://github.com/richie5um/vscode-sor
 
 https://github.com/2nthony/sortjson.nvim/assets/19513289/5d425e1b-28c5-4c3b-8d42-3e4b4d1dd266
 
-## Requirements
-
-- [jq](https://jqlang.github.io/jq/) use `jq` as the processor by default.
-
 ## Usage
 
 ```lua
@@ -22,8 +18,7 @@ return {
   },
   -- options with default values
   opts = {
-    jq = "jq", -- jq command, you can try `jaq` `gojq` etc.
-    log_level = "WARN", -- log level, see `:h vim.log.levels`, when parsing json failed
+    log_level = "WARN", -- log level, see `:h vim.log.levels`, print error info when parsing json failed
   },
 }
 ```
