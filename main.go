@@ -49,7 +49,7 @@ func parseJSON(jsonStr string) (any, error) {
 }
 
 func buildJQquerystring() string {
-	var sortExpr = "sort_by(.key)"
+	sortExpr := "sort_by(.key)"
 	if *flagLength {
 		sortExpr = "sort_by(.key | length)"
 	}
