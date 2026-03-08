@@ -2,6 +2,17 @@ local defaults = {
   log_level = "WARN",
 }
 
+local function plugin_dir()
+  local info = debug.getinfo(1, "S")
+  local source = info and info.source or ""
+
+  if vim.startswith(source, "@") then
+    source = source:sub(2)
+  end
+
+  return vim.fn.fnamemodify(source, ":h:h:h")
+end
+
 local M = {}
 
 function M.sort_json(opts, length, reverse)
@@ -9,7 +20,13 @@ function M.sort_json(opts, length, reverse)
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local json_text = table.concat(lines, "\n")
 
-  local command = "./cli"
+  local command = plugin_dir() .. "/cli"
+  if vim.fn.executable(command) ~= 1 then
+    local error_msg = string.format("[sortjson.nvim] Failed to sort JSON. Error: %s is not executable", command)
+    vim.notify(error_msg, vim.log.levels[opts.log_level])
+    return
+  end
+
   if length then
     command = command .. " --length"
   end
@@ -38,7 +55,7 @@ end
 
 function M.setup(user_opts)
   user_opts = user_opts or {}
-  opts = vim.tbl_extend("force", defaults, user_opts)
+  local opts = vim.tbl_extend("force", defaults, user_opts)
 
   vim.api.nvim_create_user_command("SortJSONByAlphaNum", function()
     M.sort_json(opts, false, false)
